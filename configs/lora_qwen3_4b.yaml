@@ -1,0 +1,48 @@
+### model
+model_name_or_path: /mnt/workspace/models/qwen3-4b
+trust_remote_code: true
+template: qwen3_nothink          # 关键：非 thinking 模板，避免输出混入思考块
+flash_attn: disabled             # A10 上不装 flash-attn，用 sdpa
+
+### method
+stage: sft
+do_train: true
+finetuning_type: lora
+lora_rank: 16
+lora_alpha: 32
+lora_dropout: 0.05
+lora_target: all                 # 注意力 + MLP 全部挂旁路（4B 模型参数量仍只有 ~1%）
+
+### dataset
+dataset: math_sft
+dataset_dir: /mnt/workspace/sft-math/data
+cutoff_len: 2048
+overwrite_cache: true
+preprocessing_num_workers: 8
+
+### output
+output_dir: /mnt/workspace/out/qwen3-4b-math-lora
+logging_steps: 10
+save_steps: 500
+save_total_limit: 3
+plot_loss: true
+overwrite_output_dir: true
+report_to: none
+
+### train
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 8      # 等效 batch 16
+learning_rate: 1.0e-4
+num_train_epochs: 3.0
+lr_scheduler_type: cosine
+warmup_ratio: 0.05
+bf16: true
+gradient_checkpointing: true
+ddp_timeout: 180000000
+
+### eval（只做 loss 监控，正式准确率用 scripts/eval.py 跑 CMath）
+val_size: 0.0
+eval_dataset: math_sft_val
+per_device_eval_batch_size: 2
+eval_strategy: steps
+eval_steps: 500

@@ -1,0 +1,42 @@
+### 冒烟测试：只跑 50 步，验证「数据格式 → 模板 → 显存 → 保存 adapter」全链路
+### 目的：避免「跑 2 小时才发现配置错」烧掉免费额度。约 5 分钟跑完。
+### 用法：llamafactory-cli train configs/lora_qwen3_4b_smoke.yaml
+### 通过标志：loss 从 ~2.x 开始下降、显存占用 < 22GB、output_dir 出现 adapter_model.safetensors
+
+model_name_or_path: /mnt/workspace/models/qwen3-4b
+trust_remote_code: true
+template: qwen3_nothink
+flash_attn: disabled
+
+stage: sft
+do_train: true
+finetuning_type: lora
+lora_rank: 16
+lora_alpha: 32
+lora_dropout: 0.05
+lora_target: all
+
+dataset: math_sft
+dataset_dir: /mnt/workspace/sft-math/data
+max_samples: 2000
+cutoff_len: 2048
+overwrite_cache: true
+preprocessing_num_workers: 8
+
+output_dir: /mnt/workspace/out/smoke
+logging_steps: 5
+save_steps: 50
+plot_loss: false
+overwrite_output_dir: true
+report_to: none
+
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 8
+learning_rate: 1.0e-4
+max_steps: 50
+lr_scheduler_type: cosine
+warmup_ratio: 0.03
+bf16: true
+gradient_checkpointing: true
+
+val_size: 0.0
