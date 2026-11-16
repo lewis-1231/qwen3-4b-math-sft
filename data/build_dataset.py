@@ -18,6 +18,7 @@ build_dataset.py — 从 NuminaMath-CoT 构建 SFT 训练集（sharegpt 格式�
   5. 随机种子固定，结果可复现
 """
 import argparse
+import glob
 import hashlib
 import json
 import os
@@ -35,12 +36,18 @@ MIN_A, MAX_A = 100, 4000
 
 
 def load_all(src_dir):
+    # modelscope download 会保留仓库内目录结构（如 data/numina/data/train-*.parquet），
+    # 所以递归查找，不假设文件在第一层
     shards = sorted(
-        os.path.join(src_dir, f) for f in os.listdir(src_dir)
-        if f.startswith("train-") and f.endswith(".parquet")
+        p for p in glob.glob(os.path.join(src_dir, "**", "*.parquet"), recursive=True)
+        if os.path.basename(p).startswith("train-")
     )
     if not shards:
-        sys.exit(f"[FATAL] 在 {src_dir} 下没找到 train-*.parquet")
+        found = glob.glob(os.path.join(src_dir, "**", "*"), recursive=True)
+        listing = "\n".join("  " + os.path.relpath(p, src_dir) for p in sorted(found)[:30])
+        sys.exit(f"[FATAL] 在 {src_dir} 下没找到 train-*.parquet。\n实际内容：\n{listing or '  （目录为空，下载可能失败）'}\n"
+                 f"修复：把 parquet 移到本目录任一层即可，例如\n"
+                 f"  find {src_dir} -name 'train-*.parquet' -exec mv {{}} {src_dir}/ \\;")
     rows = []
     for p in shards:
         t = pq.read_table(p, columns=["source", "problem", "solution"])

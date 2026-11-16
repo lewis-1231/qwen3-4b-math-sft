@@ -9,18 +9,22 @@ cd "$PROJ"
 MODEL=/mnt/workspace/models/qwen3-4b
 ADAPTER=${ADAPTER:-/mnt/workspace/out/qwen3-4b-math-lora}
 LIMIT=${LIMIT:-0}
+# 自动定位 cmath（download 可能保留仓库子目录结构）
+CMATH_TEST=${CMATH_TEST:-$(find data -name cmath_test.jsonl 2>/dev/null | head -1)}
+[ -z "$CMATH_TEST" ] && { echo "没找到 cmath_test.jsonl，先: modelscope download --dataset evalscope/cmath --local_dir data/cmath"; exit 1; }
+echo "评测集: $CMATH_TEST"
 
 mkdir -p results
 
 echo "=== 基线（原基座，无 adapter） ==="
 python scripts/eval.py --model "$MODEL" \
-  --data data/cmath/cmath_test.jsonl \
+  --data "$CMATH_TEST" \
   --out results/base.csv --limit "$LIMIT"
 
 echo
 echo "=== SFT 后（基座 + LoRA） ==="
 python scripts/eval.py --model "$MODEL" --adapter "$ADAPTER" \
-  --data data/cmath/cmath_test.jsonl \
+  --data "$CMATH_TEST" \
   --out results/sft.csv --limit "$LIMIT"
 
 echo
