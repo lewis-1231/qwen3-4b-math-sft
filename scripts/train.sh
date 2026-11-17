@@ -32,6 +32,10 @@ export CUDA_VISIBLE_DEVICES=0
 export TOKENIZERS_PARALLELISM=false
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
+# 容器重启会清掉系统盘的 pip 包，启动前自动重装（约 1-2 分钟，幂等）
+command -v llamafactory-cli >/dev/null 2>&1 || \
+  pip install -q llamafactory -i https://mirrors.aliyun.com/pypi/simple
+
 mkdir -p /mnt/workspace/out
 echo "=== 开始训练: $CFG ==="
 [ -n "$RESUME" ] && echo "=== 从 checkpoint 续训: $RESUME ==="
