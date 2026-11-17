@@ -9,8 +9,9 @@ data/dataset_info.json
 
 # 训练产物
 out/
-results/*.csv
 *.log
 __pycache__/
 *.pyc
 .DS_Store
+
+# results/*.csv 故意纳入版本控制：逐题评测明细是结论的证据，体积约 1MB 可接受
