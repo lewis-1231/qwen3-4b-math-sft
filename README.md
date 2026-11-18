@@ -174,6 +174,9 @@ SFT 模型一共答错 134 题，其中输出尾部找不到 `\boxed{}` 的只�
 
 从 epoch 2.0 起验证集 loss 不再下降，而 train_loss 一路降到 **0.1803**：模型在训练集上继续「背熟」，泛化能力已经到顶并在缓慢倒退。第 3 个 epoch 是净负增益。
 
+![train loss](docs/training_loss.png)
+![eval loss](docs/training_eval_loss.png)
+
 **第三步：checkpoint 选择实验没能完成（工程教训）。**
 本想在 eval_loss 最低的 checkpoint-2500 上回评，但 `save_total_limit=3` 把早期 checkpoint 轮转删除了，最终目录只剩 {3000, 3500, 3750}，最优点已被自己的保存策略删掉。
 **教训：做 checkpoint 选择类实验时，`save_total_limit` 必须调大（或设 `None`），否则最优点会在训练结束时被删除。**
@@ -236,6 +239,10 @@ sft-math/
 │   ├── train.sh             # 训练入口（支持 RESUME=auto）
 │   ├── run_eval.sh          # 基线与 SFT 对照
 │   └── eval.py              # CMath 判分
+├── docs/
+│   ├── training_loss.png        # 训练 loss 曲线（云产图，下载归档）
+│   └── training_eval_loss.png   # 验证集 loss 曲线
+├── out/                         # adapter 落盘处（git 忽略，与云端目录结构对应）
 ├── results/
 │   ├── base.csv             # 基线 1098 题逐题明细
 │   └── sft.csv              # SFT 1098 题逐题明细（含输出尾部，可复查判分）
